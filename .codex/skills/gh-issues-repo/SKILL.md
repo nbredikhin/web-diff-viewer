@@ -31,7 +31,8 @@ description: Manage GitHub issues in the current repository using the gh CLI. Us
 
 ## Body text inputs (avoid literal \n)
 
-When sending multi-line bodies via CLI, prefer `--body-file -` with a heredoc so newlines render correctly:
+**For issue creation and edits, always use `--body-file -` with a heredoc for multi-line text.**
+This avoids literal `\n` sequences showing up in GitHub.
 
 ```sh
 gh issue create --title "..." --body-file - <<'EOF'
@@ -43,7 +44,7 @@ gh issue create --title "..." --body-file - <<'EOF'
 EOF
 ```
 
-If you must inline, use ANSI-C quoting so `\n` is interpreted:
+If you must inline (single-line or short comments), use ANSI-C quoting so `\n` is interpreted:
 
 ```sh
 gh issue comment 123 --body $'Line 1\nLine 2\n'

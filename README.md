@@ -2,6 +2,8 @@
 
 A tiny, static, client‑only web app for viewing unified `.diff` files. It’s optimized for mobile (iOS Safari first) and keeps the code view full‑screen with a simple file tree drawer.
 
+Live demo: https://nbredikhin.github.io/web-diff-viewer/
+
 ![Web Diff Viewer screenshot](docs/screenshots/screenshot_1.png)
 
 ## Why this exists

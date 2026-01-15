@@ -249,8 +249,12 @@ button {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-.diff {
+.code-viewer .diff {
   padding: 24px 16px 120px;
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
+  display: inline-table;
 }
 
 .binary-placeholder,
@@ -286,21 +290,25 @@ button {
   }
 }
 
-.diff .diff-gutter {
+.code-viewer .diff .diff-gutter {
   background: #12161f;
 }
 
-.diff .diff-code {
+.code-viewer .diff .diff-code {
   background: #0f1115;
   position: relative;
   padding-left: 2.25em;
+  padding-right: 4rem;
+  white-space: pre;
+  word-break: normal;
+  word-wrap: normal;
 }
 
-.diff .diff-line {
+.code-viewer .diff .diff-line {
   font-family: 'SF Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
 }
 
-.diff .diff-code::before {
+.code-viewer .diff .diff-code::before {
   content: ' ';
   position: absolute;
   left: 0.75em;
@@ -308,30 +316,30 @@ button {
   color: #96a0ab;
 }
 
-.diff .diff-code-insert::before {
+.code-viewer .diff .diff-code-insert::before {
   content: '+';
   color: #e6e6e6;
 }
 
-.diff .diff-code-delete::before {
+.code-viewer .diff .diff-code-delete::before {
   content: '-';
   color: #e6e6e6;
 }
 
-.diff .diff-gutter-insert {
+.code-viewer .diff .diff-gutter-insert {
   background: #12301d;
   color: #b8f1c7;
 }
 
-.diff .diff-gutter-delete {
+.code-viewer .diff .diff-gutter-delete {
   background: #3a1d1f;
   color: #f7c1c6;
 }
 
-.diff .diff-code-insert {
+.code-viewer .diff .diff-code-insert {
   background: rgba(46, 160, 67, 0.2);
 }
 
-.diff .diff-code-delete {
+.code-viewer .diff .diff-code-delete {
   background: rgba(248, 81, 73, 0.2);
 }

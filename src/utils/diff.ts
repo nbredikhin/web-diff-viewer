@@ -6,6 +6,7 @@ export interface DiffViewChange {
   content: string;
   oldLineNumber?: number;
   newLineNumber?: number;
+  lineNumber?: number;
 }
 
 export interface DiffViewHunk {
@@ -22,6 +23,27 @@ export interface ParsedDiffResult {
   viewHunksById: Record<string, DiffViewHunk[]>;
 }
 
+const stripDiffPrefix = (content: string) => {
+  if (!content) {
+    return content;
+  }
+  const first = content[0];
+  if (first === '+' || first === '-' || first === ' ') {
+    return content.slice(1);
+  }
+  return content;
+};
+
+const getChangeLineNumber = (change: Change) => {
+  if (change.type === 'add') {
+    return change.ln2 ?? change.ln ?? change.ln1;
+  }
+  if (change.type === 'del') {
+    return change.ln1 ?? change.ln ?? change.ln2;
+  }
+  return undefined;
+};
+
 const toLine = (change: Change): DiffLine => {
   const oldLineNumber = change.type === 'add' ? null : change.ln1 ?? change.ln ?? null;
   const newLineNumber = change.type === 'del' ? null : change.ln2 ?? change.ln ?? null;
@@ -30,19 +52,21 @@ const toLine = (change: Change): DiffLine => {
     type: change.type === 'add' ? 'add' : change.type === 'del' ? 'del' : 'normal',
     oldLineNumber,
     newLineNumber,
-    content: change.content,
+    content: stripDiffPrefix(change.content),
   };
 };
 
 const toViewChange = (change: Change): DiffViewChange => {
   const oldLineNumber = change.type === 'add' ? undefined : change.ln1 ?? change.ln;
   const newLineNumber = change.type === 'del' ? undefined : change.ln2 ?? change.ln;
+  const lineNumber = change.type === 'normal' ? undefined : getChangeLineNumber(change);
 
   return {
     type: change.type === 'add' ? 'insert' : change.type === 'del' ? 'delete' : 'normal',
-    content: change.content,
+    content: stripDiffPrefix(change.content),
     oldLineNumber,
     newLineNumber,
+    lineNumber,
   };
 };
 

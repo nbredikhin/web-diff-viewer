@@ -21,6 +21,48 @@ const CHANGE_BADGES: Record<DiffFile['changeType'], string> = {
 };
 
 const getDisplayPath = (file: DiffFile) => file.newPath || file.oldPath;
+const getDisplayName = (file: DiffFile) => {
+  const displayPath = getDisplayPath(file) || 'Untitled file';
+  const parts = displayPath.split('/').filter(Boolean);
+  return parts[parts.length - 1] ?? displayPath;
+};
+
+type FileTreeNode = {
+  name: string;
+  path: string;
+  children: Map<string, FileTreeNode>;
+  files: DiffFile[];
+};
+
+const buildFileTree = (files: DiffFile[]) => {
+  const root: FileTreeNode = { name: '', path: '', children: new Map(), files: [] };
+
+  files.forEach((file) => {
+    const displayPath = getDisplayPath(file) || 'Untitled file';
+    const parts = displayPath.split('/').filter(Boolean);
+    if (parts.length <= 1) {
+      root.files.push(file);
+      return;
+    }
+    let current = root;
+    let currentPath = '';
+    parts.slice(0, -1).forEach((part) => {
+      currentPath = currentPath ? `${currentPath}/${part}` : part;
+      if (!current.children.has(part)) {
+        current.children.set(part, {
+          name: part,
+          path: currentPath,
+          children: new Map(),
+          files: [],
+        });
+      }
+      current = current.children.get(part) as FileTreeNode;
+    });
+    current.files.push(file);
+  });
+
+  return root;
+};
 
 const languageByExtension: Record<string, string> = {
   ts: 'typescript',
@@ -91,6 +133,7 @@ export default function App() {
   const [pasteValue, setPasteValue] = useState('');
   const [uploadValue, setUploadValue] = useState('');
   const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
+  const [collapsedDirs, setCollapsedDirs] = useState<Record<string, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileTreeRef = useRef<HTMLElement>(null);
   const fileTreeScrollTopRef = useRef(0);
@@ -129,6 +172,7 @@ export default function App() {
   }, []);
 
   const selectedFile = files.find((file) => file.id === selectedFileId) ?? null;
+  const fileTree = useMemo(() => buildFileTree(files), [files]);
 
   const loadDiff = useCallback((text: string) => {
     setError('');
@@ -188,6 +232,13 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.selectedFileId, file.id);
     setShowTree(false);
   };
+
+  const handleToggleDir = useCallback((path: string) => {
+    setCollapsedDirs((prev) => ({
+      ...prev,
+      [path]: !prev[path],
+    }));
+  }, []);
 
   const handleBackToStart = () => {
     setRawText('');
@@ -286,6 +337,28 @@ export default function App() {
     });
   }, [showTree, selectedFileId]);
 
+  useEffect(() => {
+    if (!selectedFile) {
+      return;
+    }
+    const displayPath = getDisplayPath(selectedFile) || '';
+    const parts = displayPath.split('/').filter(Boolean);
+    if (parts.length <= 1) {
+      return;
+    }
+    setCollapsedDirs((prev) => {
+      const next = { ...prev };
+      let currentPath = '';
+      parts.slice(0, -1).forEach((part) => {
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
+        if (next[currentPath]) {
+          next[currentPath] = false;
+        }
+      });
+      return next;
+    });
+  }, [selectedFile]);
+
   const diffType = selectedFile?.changeType === 'binary' ? 'modify' : selectedFile?.changeType ?? 'modify';
 
   const diffHunks = useMemo(() => {
@@ -310,6 +383,67 @@ export default function App() {
       }
     }
   }, [diffHunks, selectedFile]);
+
+  const renderFileButton = (file: DiffFile) => {
+    const displayPath = getDisplayPath(file) || 'Untitled file';
+    return (
+      <button
+        type="button"
+        className={file.id === selectedFileId ? 'file-item file-item--active' : 'file-item'}
+        onClick={() => handleSelectFile(file)}
+        title={displayPath}
+      >
+        <span className={`badge badge--${file.changeType}`}>{CHANGE_BADGES[file.changeType]}</span>
+        <span className="file-name">{getDisplayName(file)}</span>
+      </button>
+    );
+  };
+
+  const renderDirectoryRow = (node: FileTreeNode) => {
+    const isCollapsed = collapsedDirs[node.path] ?? false;
+    return (
+      <button
+        key={node.path}
+        type="button"
+        className="dir-item"
+        onClick={() => handleToggleDir(node.path)}
+        aria-expanded={!isCollapsed}
+      >
+        <span className="dir-item__toggle" aria-hidden="true">
+          <svg viewBox="0 0 16 16" className={isCollapsed ? 'chevron chevron--collapsed' : 'chevron'}>
+            <path
+              d="M5 3.5l6 4.5-6 4.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        <span className="dir-item__name">{node.path}/</span>
+      </button>
+    );
+  };
+
+  const buildFlatTreeRows = (node: FileTreeNode, rows: React.ReactNode[]) => {
+    const sortedDirs = Array.from(node.children.values()).sort((a, b) => a.name.localeCompare(b.name));
+    const sortedFiles = [...node.files].sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b)));
+    sortedFiles.forEach((file) => {
+      rows.push(
+        <div key={file.id} className="file-tree__item">
+          {renderFileButton(file)}
+        </div>,
+      );
+    });
+    sortedDirs.forEach((dir) => {
+      rows.push(<div key={`${dir.path}-header`}>{renderDirectoryRow(dir)}</div>);
+      if (collapsedDirs[dir.path]) {
+        return;
+      }
+      buildFlatTreeRows(dir, rows);
+    });
+  };
 
   if (!rawText) {
     return (
@@ -383,20 +517,13 @@ export default function App() {
                 </button>
               </div>
             </div>
-            <ul className="file-tree__list">
-              {files.map((file) => (
-                <li key={file.id}>
-                  <button
-                    type="button"
-                    className={file.id === selectedFileId ? 'file-item file-item--active' : 'file-item'}
-                    onClick={() => handleSelectFile(file)}
-                  >
-                    <span className={`badge badge--${file.changeType}`}>{CHANGE_BADGES[file.changeType]}</span>
-                    <span className="file-path">{getDisplayPath(file) || 'Untitled file'}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="file-tree__list">
+              {(() => {
+                const rows: React.ReactNode[] = [];
+                buildFlatTreeRows(fileTree, rows);
+                return rows;
+              })()}
+            </div>
           </aside>
         )}
         <div className="code-viewer" ref={scrollRef} onScroll={handleScroll}>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Diff, Hunk } from 'react-diff-view';
-import { refractor } from 'refractor/lib/common';
+import { Diff, Hunk, tokenize } from 'react-diff-view';
+import refractor from 'refractor';
 import type { DiffFile } from './types';
 import { parseDiffText, type DiffViewHunk } from './utils/diff';
 
@@ -43,19 +43,11 @@ const languageByExtension: Record<string, string> = {
 };
 
 const getLanguageFromPath = (path: string) => {
-  const match = path.split('.').pop();
+  const match = path.split('.').pop()?.toLowerCase();
   if (!match) {
     return 'text';
   }
   return languageByExtension[match] ?? 'text';
-};
-
-const tokenize = (code: string, language: string) => {
-  try {
-    return refractor.highlight(code, language);
-  } catch {
-    return refractor.highlight(code, 'text');
-  }
 };
 
 const readStoredScrollPositions = () => {
@@ -183,6 +175,21 @@ export default function App() {
     setShowTree(false);
   };
 
+  const handleBackToStart = () => {
+    setRawText('');
+    setFiles([]);
+    setViewHunksById({});
+    setSelectedFileId('');
+    setShowTree(true);
+    setError('');
+    setScrollPositions({});
+    setPasteValue('');
+    setUploadValue('');
+    localStorage.removeItem(STORAGE_KEYS.rawText);
+    localStorage.removeItem(STORAGE_KEYS.selectedFileId);
+    localStorage.removeItem(STORAGE_KEYS.scrollPositions);
+  };
+
   const handleScroll = useCallback(() => {
     const container = scrollRef.current;
     if (!container || !selectedFileId) {
@@ -215,6 +222,22 @@ export default function App() {
     }
     return viewHunksById[selectedFile.id] ?? [];
   }, [selectedFile, viewHunksById]);
+
+  const diffTokens = useMemo(() => {
+    if (!selectedFile || selectedFile.isBinary) {
+      return null;
+    }
+    const language = getLanguageFromPath(getDisplayPath(selectedFile));
+    try {
+      return tokenize(diffHunks, { highlight: true, refractor, language });
+    } catch {
+      try {
+        return tokenize(diffHunks, { highlight: true, refractor, language: 'text' });
+      } catch {
+        return null;
+      }
+    }
+  }, [diffHunks, selectedFile]);
 
   if (!rawText) {
     return (
@@ -279,9 +302,14 @@ export default function App() {
           <aside className="file-tree">
             <div className="file-tree__header">
               <h2>Files</h2>
-              <button type="button" className="ghost" onClick={() => setShowTree(false)}>
-                Hide
-              </button>
+              <div className="file-tree__actions">
+                <button type="button" className="ghost" onClick={() => setShowTree(false)}>
+                  Hide
+                </button>
+                <button type="button" className="ghost" onClick={handleBackToStart}>
+                  Back
+                </button>
+              </div>
             </div>
             <ul className="file-tree__list">
               {files.map((file) => (
@@ -312,7 +340,7 @@ export default function App() {
                 diffType={diffType as 'add' | 'delete' | 'modify' | 'rename'}
                 hunks={diffHunks}
                 className="diff"
-                tokenize={(line: string) => tokenize(line, getLanguageFromPath(getDisplayPath(selectedFile)))}
+                tokens={diffTokens}
               >
                 {(hunks) => hunks.map((hunk) => <Hunk key={hunk.content} hunk={hunk} />)}
               </Diff>

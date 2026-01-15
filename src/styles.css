@@ -367,6 +367,23 @@ button {
 
 .code-viewer .diff .diff-gutter {
   background: rgba(18, 22, 31, 0.9);
+  font-size: 0.8em;
+  padding: 0 calc(0.2ch + 0.1em);
+}
+
+.code-viewer .diff td.diff-gutter {
+  vertical-align: middle;
+}
+
+.code-viewer .diff .diff-gutter > a {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+.code-viewer .diff .diff-gutter-col {
+  width: calc(var(--diff-gutter-digits, 2) * 1ch + 0.5ch + 0.25em);
 }
 
 .code-viewer .diff .diff-code {
@@ -385,9 +402,7 @@ button {
   word-wrap: anywhere;
 }
 
-.code-viewer .diff .diff-line,
-.code-viewer .diff .diff-code,
-.code-viewer .diff .diff-gutter {
+.code-viewer .diff {
   font-size: var(--diff-font-size, 1em);
 }
 

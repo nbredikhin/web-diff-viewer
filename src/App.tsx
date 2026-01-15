@@ -438,6 +438,25 @@ export default function App() {
     }
   }, [diffHunks, selectedFile]);
 
+  const gutterDigits = useMemo(() => {
+    if (!diffHunks.length) {
+      return 2;
+    }
+    let maxLine = 0;
+    diffHunks.forEach((hunk) => {
+      hunk.changes.forEach((change) => {
+        if (change.oldLineNumber && change.oldLineNumber > maxLine) {
+          maxLine = change.oldLineNumber;
+        }
+        if (change.newLineNumber && change.newLineNumber > maxLine) {
+          maxLine = change.newLineNumber;
+        }
+      });
+    });
+    const digits = maxLine > 0 ? String(maxLine).length : 2;
+    return Math.max(2, digits);
+  }, [diffHunks]);
+
 
   const renderFileButton = (file: DiffFile) => {
     const displayPath = getDisplayPath(file) || 'Untitled file';
@@ -630,7 +649,12 @@ export default function App() {
           className="code-viewer"
           ref={scrollRef}
           onScroll={handleScroll}
-          style={{ '--diff-font-size': `${diffFontScale}em` } as React.CSSProperties}
+          style={
+            {
+              '--diff-font-size': `${diffFontScale}em`,
+              '--diff-gutter-digits': String(gutterDigits),
+            } as React.CSSProperties
+          }
         >
           {selectedFile ? (
             selectedFile.isBinary ? (

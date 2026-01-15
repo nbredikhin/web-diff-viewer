@@ -572,9 +572,6 @@ export default function App() {
                 >
                   {fileTreeView === 'files' ? 'Settings' : 'Files'}
                 </button>
-                <button type="button" className="ghost" onClick={() => setShowTree(false)}>
-                  Hide
-                </button>
                 <button type="button" className="ghost" onClick={handleBackToStart}>
                   New Diff
                 </button>
@@ -656,11 +653,19 @@ export default function App() {
             <div className="empty-state">Select a file to view its diff.</div>
           )}
         </div>
-        {!showTree && (
-          <button type="button" className="floating-button" onClick={() => setShowTree(true)}>
-            Files
-          </button>
-        )}
+        <button
+          type="button"
+          className="floating-button"
+          onClick={() => setShowTree((prev) => !prev)}
+          aria-pressed={showTree}
+          aria-label={showTree ? 'Hide files panel' : 'Show files panel'}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="4" y="6.5" width="16" height="1.8" rx="0.9" />
+            <rect x="4" y="11.1" width="16" height="1.8" rx="0.9" />
+            <rect x="4" y="15.7" width="16" height="1.8" rx="0.9" />
+          </svg>
+        </button>
       </div>
     </div>
   );

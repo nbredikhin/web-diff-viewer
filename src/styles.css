@@ -147,7 +147,7 @@ button {
   width: min(320px, 85vw);
   background: rgba(20, 24, 33, 0.8);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 16px;
+  padding: 0;
   z-index: 10;
   overflow-y: auto;
   backdrop-filter: blur(18px) saturate(120%);
@@ -159,7 +159,14 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(20, 24, 33, 0.92);
+  padding: 14px 16px;
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
 }
 
 .file-tree__actions {
@@ -173,11 +180,11 @@ button {
 }
 
 .file-tree__list {
-  padding: 0;
+  padding: 0 16px 14px;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .file-tree__item {
@@ -189,7 +196,7 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-radius: 0;
   border: none;
   background: transparent;
@@ -229,7 +236,7 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.04);
   background: rgba(26, 31, 43, 0.7);
@@ -292,6 +299,11 @@ button {
   padding: 8px 12px;
 }
 
+.ghost--active {
+  border-color: rgba(135, 151, 200, 0.6);
+  color: #ffffff;
+}
+
 .code-viewer {
   height: 100%;
   overflow: auto;
@@ -304,6 +316,13 @@ button {
   min-width: 100%;
   table-layout: auto;
   display: inline-table;
+}
+
+.code-viewer .diff.diff--wrap {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+  display: table;
 }
 
 .binary-placeholder,
@@ -355,6 +374,18 @@ button {
   word-wrap: normal;
 }
 
+.code-viewer .diff.diff--wrap .diff-code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  word-wrap: anywhere;
+}
+
+.code-viewer .diff .diff-line,
+.code-viewer .diff .diff-code,
+.code-viewer .diff .diff-gutter {
+  font-size: var(--diff-font-size, 1em);
+}
+
 .code-viewer .diff .diff-line {
   font-family: 'SF Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
 }
@@ -393,4 +424,61 @@ button {
 
 .code-viewer .diff .diff-code-delete {
   background: rgba(248, 81, 73, 0.2);
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 16px 14px;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(26, 31, 43, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-item__label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.settings-item__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-item__value {
+  font-size: 13px;
+  color: #c9cfda;
+  min-width: 48px;
+  text-align: center;
+}
+
+.settings-button,
+.settings-toggle {
+  background: rgba(20, 24, 33, 0.5);
+  color: #dfe3eb;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-weight: 600;
+}
+
+.settings-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-toggle--active {
+  background: rgba(93, 124, 250, 0.2);
+  border-color: rgba(93, 124, 250, 0.6);
+  color: #ffffff;
 }

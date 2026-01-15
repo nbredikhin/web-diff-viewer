@@ -10,6 +10,8 @@ const STORAGE_KEYS = {
   scrollPositions: 'diff-viewer:scroll-positions',
   fileTreeScrollTop: 'diff-viewer:file-tree-scroll',
   theme: 'diff-viewer:theme',
+  diffFontScale: 'diff-viewer:diff-font-scale',
+  diffWordWrap: 'diff-viewer:diff-word-wrap',
 } as const;
 
 const CHANGE_BADGES: Record<DiffFile['changeType'], string> = {
@@ -93,6 +95,12 @@ const getLanguageFromPath = (path: string) => {
   return languageByExtension[match] ?? 'text';
 };
 
+const DEFAULT_DIFF_FONT_SCALE = 1;
+const MIN_DIFF_FONT_SCALE = 0.7;
+const MAX_DIFF_FONT_SCALE = 1.4;
+const DIFF_FONT_SCALE_STEP = 0.1;
+const DEFAULT_DIFF_WORD_WRAP = false;
+
 const readStoredScrollPositions = () => {
   const stored = localStorage.getItem(STORAGE_KEYS.scrollPositions);
   if (!stored) {
@@ -128,12 +136,15 @@ export default function App() {
   const [viewHunksById, setViewHunksById] = useState<Record<string, DiffViewHunk[]>>({});
   const [selectedFileId, setSelectedFileId] = useState('');
   const [showTree, setShowTree] = useState(true);
+  const [fileTreeView, setFileTreeView] = useState<'files' | 'settings'>('files');
   const [error, setError] = useState('');
   const [inputTab, setInputTab] = useState<'upload' | 'paste'>('upload');
   const [pasteValue, setPasteValue] = useState('');
   const [uploadValue, setUploadValue] = useState('');
   const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
   const [collapsedDirs, setCollapsedDirs] = useState<Record<string, boolean>>({});
+  const [diffFontScale, setDiffFontScale] = useState(DEFAULT_DIFF_FONT_SCALE);
+  const [diffWordWrap, setDiffWordWrap] = useState(DEFAULT_DIFF_WORD_WRAP);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileTreeRef = useRef<HTMLElement>(null);
   const fileTreeScrollTopRef = useRef(0);
@@ -171,6 +182,29 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const storedScale = localStorage.getItem(STORAGE_KEYS.diffFontScale);
+    if (storedScale) {
+      const parsedScale = Number.parseFloat(storedScale);
+      if (Number.isFinite(parsedScale)) {
+        const clamped = Math.min(Math.max(parsedScale, MIN_DIFF_FONT_SCALE), MAX_DIFF_FONT_SCALE);
+        setDiffFontScale(clamped);
+      }
+    }
+    const storedWrap = localStorage.getItem(STORAGE_KEYS.diffWordWrap);
+    if (storedWrap) {
+      setDiffWordWrap(storedWrap === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.diffFontScale, `${diffFontScale}`);
+  }, [diffFontScale]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.diffWordWrap, diffWordWrap ? 'true' : 'false');
+  }, [diffWordWrap]);
+
   const selectedFile = files.find((file) => file.id === selectedFileId) ?? null;
   const fileTree = useMemo(() => buildFileTree(files), [files]);
 
@@ -191,6 +225,7 @@ export default function App() {
       setViewHunksById(parsed.viewHunksById);
       setSelectedFileId(parsed.files[0].id);
       setShowTree(true);
+      setFileTreeView('files');
       const positions = {} as Record<string, number>;
       setScrollPositions(positions);
       storeScrollPositions(positions);
@@ -240,12 +275,31 @@ export default function App() {
     }));
   }, []);
 
+  const handleDecreaseFont = () => {
+    setDiffFontScale((prev) => {
+      const next = Math.max(prev - DIFF_FONT_SCALE_STEP, MIN_DIFF_FONT_SCALE);
+      return Number.parseFloat(next.toFixed(2));
+    });
+  };
+
+  const handleIncreaseFont = () => {
+    setDiffFontScale((prev) => {
+      const next = Math.min(prev + DIFF_FONT_SCALE_STEP, MAX_DIFF_FONT_SCALE);
+      return Number.parseFloat(next.toFixed(2));
+    });
+  };
+
+  const handleToggleWordWrap = () => {
+    setDiffWordWrap((prev) => !prev);
+  };
+
   const handleBackToStart = () => {
     setRawText('');
     setFiles([]);
     setViewHunksById({});
     setSelectedFileId('');
     setShowTree(true);
+    setFileTreeView('files');
     setError('');
     setScrollPositions({});
     setPasteValue('');
@@ -384,6 +438,7 @@ export default function App() {
     }
   }, [diffHunks, selectedFile]);
 
+
   const renderFileButton = (file: DiffFile) => {
     const displayPath = getDisplayPath(file) || 'Untitled file';
     return (
@@ -507,8 +562,16 @@ export default function App() {
         {showTree && (
           <aside className="file-tree" ref={fileTreeRef} onScroll={handleFileTreeScroll}>
             <div className="file-tree__header">
-              <h2>Files</h2>
+              <h2>{fileTreeView === 'files' ? 'Files' : 'Settings'}</h2>
               <div className="file-tree__actions">
+                <button
+                  type="button"
+                  className={fileTreeView === 'settings' ? 'ghost ghost--active' : 'ghost'}
+                  onClick={() => setFileTreeView(fileTreeView === 'files' ? 'settings' : 'files')}
+                  aria-pressed={fileTreeView === 'settings'}
+                >
+                  {fileTreeView === 'files' ? 'Settings' : 'Files'}
+                </button>
                 <button type="button" className="ghost" onClick={() => setShowTree(false)}>
                   Hide
                 </button>
@@ -517,16 +580,61 @@ export default function App() {
                 </button>
               </div>
             </div>
-            <div className="file-tree__list">
-              {(() => {
-                const rows: React.ReactNode[] = [];
-                buildFlatTreeRows(fileTree, rows);
-                return rows;
-              })()}
-            </div>
+            {fileTreeView === 'files' ? (
+              <div className="file-tree__list">
+                {(() => {
+                  const rows: React.ReactNode[] = [];
+                  buildFlatTreeRows(fileTree, rows);
+                  return rows;
+                })()}
+              </div>
+            ) : (
+              <div className="settings-list">
+                <div className="settings-item">
+                  <div className="settings-item__label">Font size</div>
+                  <div className="settings-item__controls">
+                    <button
+                      type="button"
+                      className="settings-button"
+                      onClick={handleDecreaseFont}
+                      disabled={diffFontScale <= MIN_DIFF_FONT_SCALE}
+                    >
+                      Aa-
+                    </button>
+                    <span className="settings-item__value">{Math.round(diffFontScale * 100)}%</span>
+                    <button
+                      type="button"
+                      className="settings-button"
+                      onClick={handleIncreaseFont}
+                      disabled={diffFontScale >= MAX_DIFF_FONT_SCALE}
+                    >
+                      Aa+
+                    </button>
+                  </div>
+                </div>
+                <div className="settings-item">
+                  <div className="settings-item__label">Word wrap</div>
+                  <div className="settings-item__controls">
+                    <button
+                      type="button"
+                      className={diffWordWrap ? 'settings-toggle settings-toggle--active' : 'settings-toggle'}
+                      onClick={handleToggleWordWrap}
+                      aria-pressed={diffWordWrap}
+                    >
+                      {diffWordWrap ? 'On' : 'Off'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </aside>
         )}
-        <div className="code-viewer" ref={scrollRef} onScroll={handleScroll}>
+        <div
+          className="code-viewer"
+          ref={scrollRef}
+          onScroll={handleScroll}
+          style={{ '--diff-font-size': `${diffFontScale}em` } as React.CSSProperties}
+        >
           {selectedFile ? (
             selectedFile.isBinary ? (
               <div className="binary-placeholder">
@@ -538,7 +646,7 @@ export default function App() {
                 viewType="unified"
                 diffType={diffType as 'add' | 'delete' | 'modify' | 'rename'}
                 hunks={diffHunks}
-                className="diff"
+                className={diffWordWrap ? 'diff diff--wrap' : 'diff'}
                 tokens={diffTokens}
               >
                 {(hunks) => hunks.map((hunk) => <Hunk key={hunk.content} hunk={hunk} />)}

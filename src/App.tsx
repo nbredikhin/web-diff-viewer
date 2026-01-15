@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   rawText: 'diff-viewer:raw-text',
   selectedFileId: 'diff-viewer:selected-file',
   scrollPositions: 'diff-viewer:scroll-positions',
+  fileTreeScrollTop: 'diff-viewer:file-tree-scroll',
   theme: 'diff-viewer:theme',
 } as const;
 
@@ -70,6 +71,15 @@ const storeScrollPositions = (positions: Record<string, number>) => {
   localStorage.setItem(STORAGE_KEYS.scrollPositions, JSON.stringify(positions));
 };
 
+const readStoredFileTreeScrollTop = () => {
+  const stored = localStorage.getItem(STORAGE_KEYS.fileTreeScrollTop);
+  if (!stored) {
+    return 0;
+  }
+  const parsed = Number.parseFloat(stored);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
 export default function App() {
   const [rawText, setRawText] = useState('');
   const [files, setFiles] = useState<DiffFile[]>([]);
@@ -81,8 +91,9 @@ export default function App() {
   const [pasteValue, setPasteValue] = useState('');
   const [uploadValue, setUploadValue] = useState('');
   const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
-
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileTreeRef = useRef<HTMLElement>(null);
+  const fileTreeScrollTopRef = useRef(0);
 
   useEffect(() => {
     const storedRaw = localStorage.getItem(STORAGE_KEYS.rawText);
@@ -111,6 +122,7 @@ export default function App() {
       setSelectedFileId(initialFileId);
       setShowTree(false);
       setScrollPositions(readStoredScrollPositions());
+      fileTreeScrollTopRef.current = readStoredFileTreeScrollTop();
     } catch (parseError) {
       console.error(parseError);
     }
@@ -138,6 +150,8 @@ export default function App() {
       const positions = {} as Record<string, number>;
       setScrollPositions(positions);
       storeScrollPositions(positions);
+      fileTreeScrollTopRef.current = 0;
+      localStorage.setItem(STORAGE_KEYS.fileTreeScrollTop, '0');
       localStorage.setItem(STORAGE_KEYS.rawText, text);
       localStorage.setItem(STORAGE_KEYS.selectedFileId, parsed.files[0].id);
     } catch (parseError) {
@@ -188,6 +202,7 @@ export default function App() {
     localStorage.removeItem(STORAGE_KEYS.rawText);
     localStorage.removeItem(STORAGE_KEYS.selectedFileId);
     localStorage.removeItem(STORAGE_KEYS.scrollPositions);
+    localStorage.removeItem(STORAGE_KEYS.fileTreeScrollTop);
   };
 
   const handleScroll = useCallback(() => {
@@ -213,6 +228,63 @@ export default function App() {
     const stored = scrollPositions[selectedFileId] ?? 0;
     container.scrollTop = stored;
   }, [selectedFileId, scrollPositions]);
+
+  const handleFileTreeScroll = useCallback(() => {
+    const container = fileTreeRef.current;
+    if (!container) {
+      return;
+    }
+    const nextScrollTop = container.scrollTop;
+    fileTreeScrollTopRef.current = nextScrollTop;
+    localStorage.setItem(STORAGE_KEYS.fileTreeScrollTop, `${nextScrollTop}`);
+  }, []);
+
+  useEffect(() => {
+    if (!showTree) {
+      return;
+    }
+    const container = fileTreeRef.current;
+    if (!container) {
+      return;
+    }
+    const target = readStoredFileTreeScrollTop();
+    fileTreeScrollTopRef.current = target;
+    if (target <= 0) {
+      container.scrollTop = 0;
+      return;
+    }
+    const restore = () => {
+      container.scrollTop = target;
+    };
+    requestAnimationFrame(() => {
+      restore();
+      requestAnimationFrame(restore);
+    });
+  }, [showTree, files.length]);
+
+  useEffect(() => {
+    if (!showTree) {
+      return;
+    }
+    const container = fileTreeRef.current;
+    if (!container) {
+      return;
+    }
+    if (fileTreeScrollTopRef.current > 0) {
+      return;
+    }
+    const activeButton = container.querySelector<HTMLButtonElement>('.file-item--active');
+    if (!activeButton) {
+      return;
+    }
+    const scrollToActive = () => {
+      activeButton.scrollIntoView({ block: 'nearest' });
+    };
+    requestAnimationFrame(() => {
+      scrollToActive();
+      requestAnimationFrame(scrollToActive);
+    });
+  }, [showTree, selectedFileId]);
 
   const diffType = selectedFile?.changeType === 'binary' ? 'modify' : selectedFile?.changeType ?? 'modify';
 
@@ -299,7 +371,7 @@ export default function App() {
     <div className="app">
       <div className="viewer">
         {showTree && (
-          <aside className="file-tree">
+          <aside className="file-tree" ref={fileTreeRef} onScroll={handleFileTreeScroll}>
             <div className="file-tree__header">
               <h2>Files</h2>
               <div className="file-tree__actions">

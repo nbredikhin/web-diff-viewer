@@ -307,7 +307,7 @@ export default function App() {
                   Hide
                 </button>
                 <button type="button" className="ghost" onClick={handleBackToStart}>
-                  Back
+                  New Diff
                 </button>
               </div>
             </div>

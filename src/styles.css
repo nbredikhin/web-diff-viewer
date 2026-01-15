@@ -299,11 +299,6 @@ button {
   padding: 8px 12px;
 }
 
-.ghost--active {
-  border-color: rgba(135, 151, 200, 0.6);
-  color: #ffffff;
-}
-
 .code-viewer {
   height: 100%;
   overflow: auto;

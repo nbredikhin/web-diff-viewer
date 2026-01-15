@@ -566,7 +566,7 @@ export default function App() {
               <div className="file-tree__actions">
                 <button
                   type="button"
-                  className={fileTreeView === 'settings' ? 'ghost ghost--active' : 'ghost'}
+                  className="ghost"
                   onClick={() => setFileTreeView(fileTreeView === 'files' ? 'settings' : 'files')}
                   aria-pressed={fileTreeView === 'settings'}
                 >

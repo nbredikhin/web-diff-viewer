@@ -533,6 +533,23 @@ export default function App() {
               className={inputTab === 'upload' ? 'tab tab--active' : 'tab'}
               onClick={() => setInputTab('upload')}
             >
+              <svg viewBox="0 0 24 24" className="button-icon" aria-hidden="true">
+                <path
+                  d="M12 15V5M8.5 8.5L12 5l3.5 3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M4 15.5v3a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 18.5v-3"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
               Upload
             </button>
             <button
@@ -540,6 +557,30 @@ export default function App() {
               className={inputTab === 'paste' ? 'tab tab--active' : 'tab'}
               onClick={() => setInputTab('paste')}
             >
+              <svg viewBox="0 0 24 24" className="button-icon" aria-hidden="true">
+                <path
+                  d="M9 4.5h6l1.5 1.5H19a1 1 0 0 1 1 1v11.5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M9 4.5a1.5 1.5 0 0 0 1.5 1.5h3A1.5 1.5 0 0 0 15 4.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M9 10h6M9 13.5h6M9 17h4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
               Paste
             </button>
           </div>
@@ -579,71 +620,140 @@ export default function App() {
     <div className="app">
       <div className="viewer">
         {showTree && (
-          <aside className="file-tree" ref={fileTreeRef} onScroll={handleFileTreeScroll}>
-            <div className="file-tree__header">
-              <h2>{fileTreeView === 'files' ? 'Files' : 'Settings'}</h2>
-              <div className="file-tree__actions">
-                <button
-                  type="button"
-                  className="ghost"
-                  onClick={() => setFileTreeView(fileTreeView === 'files' ? 'settings' : 'files')}
-                  aria-pressed={fileTreeView === 'settings'}
-                >
-                  {fileTreeView === 'files' ? 'Settings' : 'Files'}
-                </button>
-                <button type="button" className="ghost" onClick={handleBackToStart}>
-                  New Diff
-                </button>
+          <>
+            <button
+              type="button"
+              className="file-tree__backdrop"
+              onClick={() => setShowTree(false)}
+              aria-label="Close file tree panel"
+            />
+            <aside className="file-tree" ref={fileTreeRef} onScroll={handleFileTreeScroll}>
+              <div className="file-tree__header">
+                <h2>{fileTreeView === 'files' ? 'File Tree' : 'Settings'}</h2>
+                <div className="file-tree__actions">
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => setFileTreeView(fileTreeView === 'files' ? 'settings' : 'files')}
+                    aria-pressed={fileTreeView === 'settings'}
+                  >
+                    {fileTreeView === 'files' ? (
+                      <>
+                        <svg viewBox="0 0 24 24" className="button-icon" aria-hidden="true">
+                          <path
+                            d="M19 12l2-1-1.1-2.6-2.2.5-1.2-2 1.5-1.7-2-1.8-1.8 1.5-2-1.2.5-2.2L13 1l-1 2-2.6-1.1-.5 2.2-2 1.2-1.7-1.5-1.8 2 1.5 1.8-1.2 2-2.2-.5L1 11l2 1-1 2.6 2.2.5 1.2 2-1.5 1.7 2 1.8 1.8-1.5 2 1.2-.5 2.2L11 23l1-2 2.6 1.1.5-2.2 2-1.2 1.7 1.5 1.8-2-1.5-1.8 1.2-2 2.2.5L23 13l-2-1z"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                        </svg>
+                        Settings
+                      </>
+                    ) : (
+                      <>
+                        <svg viewBox="0 0 24 24" className="button-icon" aria-hidden="true">
+                          <path
+                            d="M4 6.5h7l1.5 1.5H20v9.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M6 11h5M6 14.5h8M6 18h10"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        File Tree
+                      </>
+                    )}
+                  </button>
+                  <button type="button" className="ghost" onClick={handleBackToStart}>
+                    <svg viewBox="0 0 24 24" className="button-icon" aria-hidden="true">
+                      <path
+                        d="M6 3.5h7l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M13 3.5V7.5h4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M9 12h6M9 12v4M9 16h6"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    New Diff
+                  </button>
+                </div>
               </div>
-            </div>
-            {fileTreeView === 'files' ? (
-              <div className="file-tree__list">
-                {(() => {
-                  const rows: React.ReactNode[] = [];
-                  buildFlatTreeRows(fileTree, rows);
-                  return rows;
-                })()}
-              </div>
-            ) : (
-              <div className="settings-list">
-                <div className="settings-item">
-                  <div className="settings-item__label">Font size</div>
-                  <div className="settings-item__controls">
-                    <button
-                      type="button"
-                      className="settings-button"
-                      onClick={handleDecreaseFont}
-                      disabled={diffFontScale <= MIN_DIFF_FONT_SCALE}
-                    >
-                      Aa-
-                    </button>
-                    <span className="settings-item__value">{Math.round(diffFontScale * 100)}%</span>
-                    <button
-                      type="button"
-                      className="settings-button"
-                      onClick={handleIncreaseFont}
-                      disabled={diffFontScale >= MAX_DIFF_FONT_SCALE}
-                    >
-                      Aa+
-                    </button>
+              {fileTreeView === 'files' ? (
+                <div className="file-tree__list">
+                  {(() => {
+                    const rows: React.ReactNode[] = [];
+                    buildFlatTreeRows(fileTree, rows);
+                    return rows;
+                  })()}
+                </div>
+              ) : (
+                <div className="settings-list">
+                  <div className="settings-item">
+                    <div className="settings-item__label">Font size</div>
+                    <div className="settings-item__controls">
+                      <button
+                        type="button"
+                        className="settings-button"
+                        onClick={handleDecreaseFont}
+                        disabled={diffFontScale <= MIN_DIFF_FONT_SCALE}
+                      >
+                        Aa-
+                      </button>
+                      <span className="settings-item__value">{Math.round(diffFontScale * 100)}%</span>
+                      <button
+                        type="button"
+                        className="settings-button"
+                        onClick={handleIncreaseFont}
+                        disabled={diffFontScale >= MAX_DIFF_FONT_SCALE}
+                      >
+                        Aa+
+                      </button>
+                    </div>
+                  </div>
+                  <div className="settings-item">
+                    <div className="settings-item__label">Word wrap</div>
+                    <div className="settings-item__controls">
+                      <button
+                        type="button"
+                        className={diffWordWrap ? 'settings-toggle settings-toggle--active' : 'settings-toggle'}
+                        onClick={handleToggleWordWrap}
+                        aria-pressed={diffWordWrap}
+                      >
+                        {diffWordWrap ? 'On' : 'Off'}
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="settings-item">
-                  <div className="settings-item__label">Word wrap</div>
-                  <div className="settings-item__controls">
-                    <button
-                      type="button"
-                      className={diffWordWrap ? 'settings-toggle settings-toggle--active' : 'settings-toggle'}
-                      onClick={handleToggleWordWrap}
-                      aria-pressed={diffWordWrap}
-                    >
-                      {diffWordWrap ? 'On' : 'Off'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </aside>
+              )}
+            </aside>
+          </>
         )}
         <div
           className="code-viewer"
@@ -682,7 +792,7 @@ export default function App() {
           className="floating-button"
           onClick={() => setShowTree((prev) => !prev)}
           aria-pressed={showTree}
-          aria-label={showTree ? 'Hide files panel' : 'Show files panel'}
+          aria-label={showTree ? 'Hide file tree panel' : 'Show file tree panel'}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="4" y="6.5" width="16" height="1.8" rx="0.9" />

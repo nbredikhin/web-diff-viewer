@@ -367,8 +367,8 @@ button {
 
 .code-viewer .diff .diff-gutter {
   background: rgba(18, 22, 31, 0.9);
-  font-size: 0.8em;
-  padding: 0 calc(0.2ch + 0.1em);
+  font-size: 0.7em;
+  padding: 0 calc(0.15ch + 0.05em - 1px);
 }
 
 .code-viewer .diff td.diff-gutter {
@@ -383,7 +383,7 @@ button {
 }
 
 .code-viewer .diff .diff-gutter-col {
-  width: calc(var(--diff-gutter-digits, 2) * 1ch + 0.5ch + 0.25em);
+  width: calc(var(--diff-gutter-digits, 2) * 1ch + 0.35ch + 0.2em - 1px);
 }
 
 .code-viewer .diff .diff-code {
